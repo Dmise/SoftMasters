@@ -11,7 +11,7 @@
                     <label for="FormFile">Выберите XML файл для загрузки в базу данных</label><br/>
                     <input class="button" asp-for="FormFile" type="file"><br/>
                     <span asp-validation-for="FormFile"></span><br/>
-                    <input asp-controller="Home" asp-action="UploadFile" class="button" type="submit" value="Upload" />
+                    <input asp-controller="SM" asp-action="UploadFile" class="button" type="submit" value="Upload" />
                 </form>
             </div>
         </td>
@@ -20,7 +20,7 @@
             <dl>
                 <dt>Кол-во записей: @Model.OperationsInDB</dt>
             </dl>                      
-            <a asp-controller="Home" asp-action="ClearDataBase"><button class="button">Clear DataBase</button> </a>
+            <a asp-controller="SM" asp-action="ClearDataBase"><button class="button">Clear DataBase</button> </a>
         </td>
         <td>
             <label for="logTextArea">Лог действий:</label><br />
@@ -48,7 +48,7 @@
                         <option value="@car">@car</option>
                     }
                 </select><span asp-validation-for="SelectedTrain"></span><br />
-            <button type="submit" class="button" asp-controller="Home" asp-action="CreateReport" asp-route-car="SelectedCar">Сформировать отчет</button>
+            <button type="submit" class="button" asp-controller="SM" asp-action="CreateReport" asp-route-car="SelectedCar">Сформировать отчет</button>
             <form/>
             <form method="get"><button class="button" asp-controller="File" asp-action="DownlodReport">Загрузить отчет</button></form>
             

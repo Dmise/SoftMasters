@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Xml.Serialization;
 using WebApp.Data;
 using WebApp.Models;
 using WebApp.Utilities;
+
 
 namespace WebApp.Controllers
 {
@@ -34,17 +36,18 @@ namespace WebApp.Controllers
         public ActionResult UpdatePage()
         {
             var model = new SMPageModel();
-            return View(model);
+            return View("SMPage",model);
         }
 
-        public async Task<ActionResult> UpdatePageAsync()
-        {
-            await Task.Run(() =>
-            {
-                var model = new SMPageModel();
-                return View(model);
-            });
-            return new EmptyResult();
+        public void RefreshPageAsync()
+        {          
+            
+            //await Task.Run(() =>
+            //{
+            //    var model = new SMPageModel();
+            //    return View(model);
+            //});
+            Response.Redirect(Request.Path, true);
         }
 
         [Route("/testtasks/softmasters")]
@@ -77,7 +80,7 @@ namespace WebApp.Controllers
             int fileAmount = 1;
             int fileCounter = 0;
             var files = Request.Form.Files;
-            if (files != null)
+            if (files != null && files.Count != 0)
             {
                 foreach (var file in files)
                 {
@@ -112,7 +115,9 @@ namespace WebApp.Controllers
             else
             {
                 //Это не файл,
-                return BadRequest();
+                //return Content("<script language='javascript' type='text/javascript'>alert('Thanks for Feedback!');</script>");
+                //Page page = HttpContext.Current.CurrentHandler as Page;
+                return BadRequest("Нужно выбрать файл, котоырй вы хотите загрузить в базу данных");
             }
         }        
 

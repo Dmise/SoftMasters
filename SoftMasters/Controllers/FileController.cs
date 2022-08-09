@@ -12,17 +12,22 @@ namespace WebApp.Controllers
         {
             _env = env;
         }
-        public async Task<FileStreamResult> DownlodReport()
+        public async Task<ActionResult> DownlodReport()
         {
             var reportFI = XMLWorker.GetReportFI;
-            var contenType = "application/vnd.ms-excel"; // 
-            Stream stream = new FileStream(reportFI.FullName, FileMode.Open);
-
-
-            return new FileStreamResult(stream, contenType)
+            if (reportFI != null)
             {
-                FileDownloadName = reportFI.Name
-            };
+                var contenType = "application/vnd.ms-excel"; // 
+                Stream stream = new FileStream(reportFI.FullName, FileMode.Open);
+
+
+                return new FileStreamResult(stream, contenType)
+                {
+                    FileDownloadName = reportFI.Name
+                };
+            }
+            LogStorage.Add("Отчет не создан. Сначала сформируйте отчет");            
+            return RedirectToAction("UpdatePage","SM");
         }
     }
 

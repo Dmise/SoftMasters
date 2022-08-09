@@ -24,14 +24,17 @@ namespace WebApp.Utilities
             }
             set { _webenv = value; }
         }
-        public static FileInfo GetReportFI
+        public static FileInfo? GetReportFI
         {
             get 
             {
                 if(_webenv != null)
+                {
                     return new FileInfo(Path.Combine(_webenv.WebRootPath, "appdata/report.xlsx"));
+                }
 
-                return new FileInfo(String.Empty);
+
+                return null;
                 
             }
         }

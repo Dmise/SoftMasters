@@ -1,0 +1,60 @@
+﻿@model WebApp.Models.SMPageModel
+@{
+    Layout = "_Layout";
+}
+<body>
+<table class="table">
+    <tr>        
+        <td>
+            <div class="">
+                <form enctype="multipart/form-data" method="post">
+                    <label for="FormFile">Выберите XML файл для загрузки в базу данных</label><br/>
+                    <input class="button" asp-for="FormFile" type="file"><br/>
+                    <span asp-validation-for="FormFile"></span><br/>
+                    <input asp-controller="Home" asp-action="UploadFile" class="button" type="submit" value="Upload" />
+                </form>
+            </div>
+        </td>
+        <td>
+            <label for="db_state" >Состояние базы данных:<label/>
+            <dl>
+                <dt>Кол-во записей: @Model.OperationsInDB</dt>
+            </dl>                      
+            <a asp-controller="Home" asp-action="ClearDataBase"><button class="button">Clear DataBase</button> </a>
+        </td>
+        <td>
+            <label for="logTextArea">Лог действий:</label><br />
+            <textarea style="resize: none"" cols="70" rows="7" id="logTextArea">@Model.Logtext</textarea>            
+        </td>
+    </tr>    
+    <tr>
+        <td colspan="3" >
+            <h2>Натурный лист</h2>
+            <form enctype="text/plain" method="get" id="carform">
+                <label for="select_train" >Выбериет номер поезда:</label>                
+                <select id="select_train" style="width: 20%" name="train">
+                    @{
+                        if (Model.SelectedTrain == 0)
+                        {
+                                            <option selected>Выберите поезд...</option>
+                        }
+                        else
+                        {
+                                            <option selected value="@Model. SelectedTrain">@Model.SelectedTrain</option>
+                        }
+                    }
+                    @foreach (var car in Model.Trains)
+                    {
+                        <option value="@car">@car</option>
+                    }
+                </select><span asp-validation-for="SelectedTrain"></span><br />
+            <button type="submit" class="button" asp-controller="Home" asp-action="CreateReport" asp-route-car="SelectedCar">Сформировать отчет</button>
+            <form/>
+            <form method="get"><button class="button" asp-controller="File" asp-action="DownlodReport">Загрузить отчет</button></form>
+            
+        </td>
+    </tr>
+</table>
+</body>
+
+

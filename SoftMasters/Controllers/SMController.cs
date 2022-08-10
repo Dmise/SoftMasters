@@ -8,6 +8,11 @@ using WebApp.Data;
 using WebApp.Models;
 using WebApp.Utilities;
 
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using System.Data;
+using System.Linq;
+
 
 namespace WebApp.Controllers
 {
@@ -34,7 +39,7 @@ namespace WebApp.Controllers
         
         public ActionResult UpdatePage()
         {
-            var model = new SMPageModel();
+            var model = new SMPageModel(_dbContext);
             return View("SMPage",model);
         }
 
@@ -53,45 +58,48 @@ namespace WebApp.Controllers
         public IActionResult SMPage()
         {
             DBWorker.Configure(_dbContext);
-            var model = new SMPageModel();
+            var model = new SMPageModel(_dbContext);
             return View(model);
         }
 
         public IActionResult ClearDataBase()
         {
-            var model = new SMPageModel();
+            
             LogStorage.Add("начало зачистки базы данных");
+            var dbName = "SoftMasters";  // test or release db
+            _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Operations");
+            _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Invoices");
+            _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Cars");
+            _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Compositions");
+            _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Freights");
+            _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.OperationNames");
+            _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Trains");
+            _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Stations");                 
+            
 
-            _dbContext.Operations.FromSqlRaw("DELETE FROM SoftMasters.Operations");
-            _dbContext.Invoices.FromSqlRaw("DELETE FROM SoftMasters.Invoices");
-            _dbContext.Cars.FromSqlRaw("DELETE FROM SoftMasters.Cars");
-            _dbContext.Compositions.FromSqlRaw("DELETE FROM SoftMasters.Compositions");
-            _dbContext.Freights.FromSqlRaw("DELETE FROM SoftMasters.Freights");
-            _dbContext.OperationNames.FromSqlRaw("DELETE FROM SoftMasters.OperationNames");
-            _dbContext.Trains.FromSqlRaw("DELETE FROM SoftMasters.Trains");
-            _dbContext.Stations.FromSqlRaw("DELETE FROM SoftMasters.Stations");
-
+            _dbContext.SaveChanges();
             LogStorage.Add("База данных очищена");
+            var model = new SMPageModel(_dbContext);
             return View("SMPage", model);
 
-
-            //_dbContext.Operations.FromSqlRaw("TRUNCATE TABLE SoftMasters.Operations");
-            //_dbContext.OperationNames.FromSqlRaw("TRUNCATE TABLE SoftMasters.OperationNames");
-            //_dbContext.Compositions.FromSqlRaw("TRUNCATE TABLE SoftMasters.Compositions");
-            //_dbContext.Cars.FromSqlRaw("TRUNCATE TABLE SoftMasters.Cars");
-            //_dbContext.Invoices.FromSqlRaw("TRUNCATE TABLE SoftMasters.Invoices");  // DELETE FROM SoftMasters.Invoices;
-            //_dbContext.Freights.FromSqlRaw("TRUNCATE TABLE SoftMasters.Freights");
+            //_dbContext.Stations.FromSqlRaw("DELETE FROM SoftMasters.Stations");
             //_dbContext.Stations.FromSqlRaw("TRUNCATE TABLE SoftMasters.Stations");
-            //_dbContext.Trains.FromSqlRaw("TRUNCATE TABLE SoftMasters.Trains");
-
 
         }
+
+        //public static string Delete<T>(this DbSet<T> dbSet) where T : class
+        //{
+        //    string cmd = $"DELETE FROM {AnnotationHelper.TableName(dbSet)}";
+        //    var context = dbSet.GetService<ICurrentDbContext>().Context;
+        //    context.Database.ExecuteSqlRaw(cmd);
+        //    return cmd;
+        //}
 
 
         [Route("CreateReport")]
         public async Task<IActionResult> CreateReport(int train) // TODO FromForm
         {
-            var model = new SMPageModel();
+            var model = new SMPageModel(_dbContext);
             model.SelectedTrain = train;
             XMLWorker.CreateReportAsync(train, _env, _dbContext);
             return View("SMPage", model);
@@ -124,8 +132,8 @@ namespace WebApp.Controllers
                 {
                     if (fileToProcess != null)
                     {
-                       var dbWorker = new DBWorker(_dbContext);
-                       await dbWorker.LoadToDataBaseAsync(fileToProcess);
+                       DBWorker.Configure(_dbContext); 
+                       await DBWorker.LoadToDataBaseAsync(fileToProcess);
                     }
                     else
                         LogStorage.Add("файл с исходными XML данными не выбран");  
@@ -139,7 +147,8 @@ namespace WebApp.Controllers
                     ViewBag.Error = ex.Message;
                     return View("Error");
                 }
-                return View("SMPage");
+                SMPageModel model = new SMPageModel(_dbContext);
+                return View("SMPage", model);
             }
             else
             {

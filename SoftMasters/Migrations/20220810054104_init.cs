@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace WebApp.Migrations
+namespace SoftMasters.test.Migrations
 {
     public partial class init : Migration
     {
@@ -83,14 +83,12 @@ namespace WebApp.Migrations
                         column: x => x.FromStationName,
                         principalTable: "Stations",
                         principalColumn: "Name",
-                        onUpdate: ReferentialAction.Cascade,
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Trains_Stations_ToStationName",
                         column: x => x.ToStationName,
                         principalTable: "Stations",
                         principalColumn: "Name",
-                        onUpdate: ReferentialAction.Cascade,
                         onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
@@ -111,7 +109,6 @@ namespace WebApp.Migrations
                         column: x => x.TrainId,
                         principalTable: "Trains",
                         principalColumn: "TrainId",
-                        onUpdate: ReferentialAction.Cascade,
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
@@ -138,21 +135,18 @@ namespace WebApp.Migrations
                         column: x => x.CompositionNumber,
                         principalTable: "Compositions",
                         principalColumn: "CombinedTrainIndex",
-                        onUpdate: ReferentialAction.Cascade,
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Cars_Freights_FreightName",
                         column: x => x.FreightName,
                         principalTable: "Freights",
                         principalColumn: "Name",
-                        onUpdate: ReferentialAction.Cascade,
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Cars_Invoices_InvoiceNumber",
                         column: x => x.InvoiceNumber,
                         principalTable: "Invoices",
                         principalColumn: "InvoiceNumber",
-                        onUpdate: ReferentialAction.Cascade,
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
@@ -176,21 +170,18 @@ namespace WebApp.Migrations
                         column: x => x.CarNumber,
                         principalTable: "Cars",
                         principalColumn: "CarId",
-                        onUpdate: ReferentialAction.Cascade,
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Operations_OperationNames_LastOperationName",
                         column: x => x.LastOperationName,
                         principalTable: "OperationNames",
                         principalColumn: "Name",
-                        onUpdate: ReferentialAction.Cascade,
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Operations_Stations_StationName",
                         column: x => x.StationName,
                         principalTable: "Stations",
                         principalColumn: "Name",
-                        onUpdate: ReferentialAction.Cascade,
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");

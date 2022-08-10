@@ -8,10 +8,10 @@ using WebApp.Data;
 
 #nullable disable
 
-namespace WebApp.Migrations
+namespace SoftMasters.test.Migrations
 {
     [DbContext(typeof(SMDbContext))]
-    [Migration("20220801075149_init")]
+    [Migration("20220810054104_init")]
     partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -29,7 +29,8 @@ namespace WebApp.Migrations
 
                     b.Property<string>("CompositionNumber")
                         .IsRequired()
-                        .HasColumnType("varchar(95)");
+                        .HasColumnType("varchar(95)")
+                        .HasColumnName("CompositionNumber");
 
                     b.Property<string>("FreightName")
                         .IsRequired()
@@ -62,7 +63,6 @@ namespace WebApp.Migrations
                         .HasColumnType("varchar(95)");
 
                     b.Property<int>("TrainId")
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("int");
 
                     b.HasKey("CombinedTrainIndex");
@@ -145,11 +145,9 @@ namespace WebApp.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("FromStationName")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("varchar(90)");
 
                     b.Property<string>("ToStationName")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("varchar(90)");
 
                     b.HasKey("TrainId", "FromStationName", "ToStationName");
@@ -163,29 +161,29 @@ namespace WebApp.Migrations
 
             modelBuilder.Entity("WebApp.Models.Car", b =>
                 {
-                    b.HasOne("WebApp.Models.Composition", "Composition")
+                    b.HasOne("WebApp.Models.Composition", "_Composition")
                         .WithMany()
                         .HasForeignKey("CompositionNumber")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("WebApp.Models.Freight", "Freight")
+                    b.HasOne("WebApp.Models.Freight", "_Freight")
                         .WithMany()
                         .HasForeignKey("FreightName")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("WebApp.Models.Invoice", "Invoice")
+                    b.HasOne("WebApp.Models.Invoice", "_Invoice")
                         .WithMany()
                         .HasForeignKey("InvoiceNumber")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Composition");
+                    b.Navigation("_Composition");
 
-                    b.Navigation("Freight");
+                    b.Navigation("_Freight");
 
-                    b.Navigation("Invoice");
+                    b.Navigation("_Invoice");
                 });
 
             modelBuilder.Entity("WebApp.Models.Composition", b =>

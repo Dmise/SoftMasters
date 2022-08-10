@@ -1,18 +1,25 @@
 ﻿using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Text;
 using System.Xml.Serialization;
+using WebApp.Data;
 using WebApp.Utilities;
 
 namespace WebApp.Models
 {
     public class SMPageModel: PageModel
-    {                
+    {
+        private SMDbContext _dbContext;
+        public SMPageModel(SMDbContext context)
+        {
+            _dbContext = context;
+        }
         public IFormFile? FormFile { get;set; }       
         public string OperationsInDB 
         { 
             get 
             {
-                return DBWorker.GetOperationInDBAmount.ToString();
+                return _dbContext.Operations.Count().ToString();
+                //return DBWorker.GetOperationInDBAmount.ToString();
             }
              
         }
@@ -22,7 +29,16 @@ namespace WebApp.Models
         {
             get
             {
-                return DBWorker._dbContext.Trains.Select(c=>c.TrainId).ToList();
+                try
+                {
+                    return _dbContext.Trains.Select(t => t.TrainId).ToList();
+                }
+                catch
+                {
+                    return new List<int>(); 
+                }
+                
+                //return DBWorker.GetTrainsIDs;
             }
         }
         public string Logtext

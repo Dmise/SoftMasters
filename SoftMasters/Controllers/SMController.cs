@@ -14,7 +14,7 @@ namespace WebApp.Controllers
     
     public class SMController : Controller
     {
-        string? fileToProcess = null;
+        private string? fileToProcess = null;
 
 
         public event Func<string, IActionResult> OnAddToLog;
@@ -29,8 +29,7 @@ namespace WebApp.Controllers
             _logger = logger;
             _dbContext = dbContext;
             _env = env;
-            DBWorker.Configure(dbContext);
-
+            
         }
         
         public ActionResult UpdatePage()
@@ -53,6 +52,7 @@ namespace WebApp.Controllers
         [Route("/testtasks/softmasters")]
         public IActionResult SMPage()
         {
+            DBWorker.Configure(_dbContext);
             var model = new SMPageModel();
             return View(model);
         }
@@ -60,8 +60,31 @@ namespace WebApp.Controllers
         public IActionResult ClearDataBase()
         {
             var model = new SMPageModel();
-            LogStorage.Add("click delete button");
+            LogStorage.Add("начало зачистки базы данных");
+
+            _dbContext.Operations.FromSqlRaw("DELETE FROM SoftMasters.Operations");
+            _dbContext.Invoices.FromSqlRaw("DELETE FROM SoftMasters.Invoices");
+            _dbContext.Cars.FromSqlRaw("DELETE FROM SoftMasters.Cars");
+            _dbContext.Compositions.FromSqlRaw("DELETE FROM SoftMasters.Compositions");
+            _dbContext.Freights.FromSqlRaw("DELETE FROM SoftMasters.Freights");
+            _dbContext.OperationNames.FromSqlRaw("DELETE FROM SoftMasters.OperationNames");
+            _dbContext.Trains.FromSqlRaw("DELETE FROM SoftMasters.Trains");
+            _dbContext.Stations.FromSqlRaw("DELETE FROM SoftMasters.Stations");
+
+            LogStorage.Add("База данных очищена");
             return View("SMPage", model);
+
+
+            //_dbContext.Operations.FromSqlRaw("TRUNCATE TABLE SoftMasters.Operations");
+            //_dbContext.OperationNames.FromSqlRaw("TRUNCATE TABLE SoftMasters.OperationNames");
+            //_dbContext.Compositions.FromSqlRaw("TRUNCATE TABLE SoftMasters.Compositions");
+            //_dbContext.Cars.FromSqlRaw("TRUNCATE TABLE SoftMasters.Cars");
+            //_dbContext.Invoices.FromSqlRaw("TRUNCATE TABLE SoftMasters.Invoices");  // DELETE FROM SoftMasters.Invoices;
+            //_dbContext.Freights.FromSqlRaw("TRUNCATE TABLE SoftMasters.Freights");
+            //_dbContext.Stations.FromSqlRaw("TRUNCATE TABLE SoftMasters.Stations");
+            //_dbContext.Trains.FromSqlRaw("TRUNCATE TABLE SoftMasters.Trains");
+
+
         }
 
 
@@ -99,7 +122,13 @@ namespace WebApp.Controllers
                 
                 try 
                 {
-                    LoadToDataBaseAsync(fileToProcess);
+                    if (fileToProcess != null)
+                    {
+                       var dbWorker = new DBWorker(_dbContext);
+                       await dbWorker.LoadToDataBaseAsync(fileToProcess);
+                    }
+                    else
+                        LogStorage.Add("файл с исходными XML данными не выбран");  
                 }
                 catch(DbUpdateException ex)
                 {

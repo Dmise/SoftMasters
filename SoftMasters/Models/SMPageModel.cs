@@ -7,13 +7,12 @@ namespace WebApp.Models
 {
     public class SMPageModel: PageModel
     {                
-        public IFormFile? FormFile { get;set; }
-        public static string OperationsInDB_static { get; set; } = "Undefined";
+        public IFormFile? FormFile { get;set; }       
         public string OperationsInDB 
         { 
             get 
             {
-                return DBWorker.GetOperationInDBAmount().ToString();
+                return DBWorker.GetOperationInDBAmount.ToString();
             }
              
         }

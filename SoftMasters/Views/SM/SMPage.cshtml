@@ -2,62 +2,77 @@
 @{
     Layout = "_Layout";
 }
+<head>
+    <title>Soft Masters test task</title>
+</head>
+
 <body>
-<div>
-    <p><i class="bi bi-tools" style="font-size: 25px"></i> This project is under development. Source code you may find <a href="https://github.com/Dmise/SoftMasters">here</a> on my github repo.</p>
-</div>
-<table class="table">
-    <tr>        
-        <td>
-            <div class="">
-                <form enctype="multipart/form-data" method="post">
-                    <label for="FormFile">Выберите XML файл для загрузки в базу данных</label><br/>
-                    <input class="button" asp-for="FormFile" type="file"><br/>
-                    <span asp-validation-for="FormFile"></span><br/>
-                    <input asp-controller="SM" asp-action="UploadFile" class="button" type="submit" value="Upload" />
-                </form>
-            </div>
-        </td>
-        <td>
-            <label for="db_state" >Состояние базы данных:<label/>
-            <dl>
-                <dt>Кол-во записей: @Model.OperationsInDB</dt>
-            </dl>                      
-            <a asp-controller="SM" asp-action="ClearDataBase"><button class="button">Clear DataBase</button> </a>
-        </td>
-        <td>
-            <label for="logTextArea">Лог действий:</label><br />
-            <textarea style="resize: none"" cols="70" rows="7" id="logTextArea">@Model.Logtext</textarea>            
-        </td>
-    </tr>    
-    <tr>
-        <td colspan="3" >
-            <h2>Натурный лист</h2>
-            <form enctype="text/plain" method="get" id="carform">
-                <label for="select_train" >Выбериет номер поезда:</label>                
-                <select id="select_train" style="width: 20%" name="train">
-                    @{
-                        if (Model.SelectedTrain == 0)
-                        {
-                                            <option selected>Выберите поезд...</option>
-                        }
-                        else
-                        {
-                                            <option selected value="@Model. SelectedTrain">@Model.SelectedTrain</option>
-                        }
-                    }
-                    @foreach (var car in Model.Trains)
-                    {
-                        <option value="@car">@car</option>
-                    }
-                </select><span asp-validation-for="SelectedTrain"></span><br />
-            <button type="submit" class="button" asp-controller="SM" asp-action="CreateReport" asp-route-car="SelectedCar">Сформировать отчет</button>
-            <form/>
-            <form method="get"><button class="button" asp-controller="File" asp-action="DownlodReport">Загрузить отчет</button></form>
-            
-        </td>
-    </tr>
-</table>
+    <div>
+        <p><i class="bi bi-tools" style="font-size: 25px"></i> This project is under development. Source code you may find <a href="https://github.com/Dmise/SoftMasters">here</a> on my github repo.</p>
+    </div>
+    <table class="table">
+        <tr>
+            <td>
+                <div>
+                    <form enctype="multipart/form-data" method="post">
+                        <label for="FormFile">Выберите XML файл для загрузки в базу данных</label><br />
+                        <input class="button" asp-for="FormFile" type="file"><br />
+                        <span asp-validation-for="FormFile"></span><br />
+                        <input asp-controller="SM" asp-action="UploadFile" class="button" type="submit" value="Upload" />
+                    </form>
+                </div>
+            </td>
+            <td>
+                <div>
+                    <p>Состояние базы данных:</p><br />
+                    <dl>
+                        <dt>Кол-во записей: @Model.OperationsInDB</dt>
+                    </dl>
+                    <!--<a asp-controller="SM" asp-action="ClearDataBase"><button class="button">Clear DataBase</button> </a> -->
+                </div>
+            </td>
+            <td>
+                <div>
+                    <label for="logTextArea">Лог действий:</label><br />
+                    <textarea style="resize: none" cols="70" rows="7" id="logTextArea">@Model.Logtext</textarea>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                <div>
+                    <h2>Натурный лист</h2>
+                    <form enctype="text/plain" asp-controller="SM"  asp-action="CreateReport" asp-route-train="" method="get" id="trainform">
+                        <label for="train-select">Выберите номер поезда:</label>
+                        <br />
+                        
+                        <select name="train" style="width: 20%">
+                            @{
+                            if (Model.SelectedTrain == 0)
+                            {
+                                <option selected value="0">Выберите поезд...</option>
+                            }
+                            else
+                            {
+                                <option selected value="@Model.SelectedTrain">@Model.SelectedTrain</option>
+                            }
+                            }
+                            @foreach (var train in Model.Trains)
+                            {
+                            <option value="@train">@train</option>
+                            }
+                        </select>
+                        
+                        <br /><br />
+                        <input  style="margin: 5px" type="submit" class="button" value="Сформировать отчет">
+                        <button style="margin: 5px" class="button" asp-controller="SM" asp-action="DownlodReport">Загрузить отчет</button>
+                    </form>
+
+                    
+                </div>
+            </td>
+        </tr>
+    </table>
 </body>
 
 

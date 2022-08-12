@@ -1,22 +1,19 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
-using System.Linq;
-using System.Xml.Serialization;
+
 using WebApp.Data;
 using WebApp.Models;
 using WebApp.Utilities;
 
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using System.Data;
-using System.Linq;
 
+using System.Data;
+
+using System.Text.RegularExpressions;
 
 namespace WebApp.Controllers
 {
-    
+    [Route("/testtasks/softmasters")]
     public class SMController : Controller
     {
         private string? fileToProcess = null;
@@ -25,24 +22,31 @@ namespace WebApp.Controllers
         public event Func<string, IActionResult> OnAddToLog;
 
 
-        private readonly ILogger<SMController> _logger;
+       
         private SMDbContext _dbContext;
         private IWebHostEnvironment _env;
+        private readonly IConfiguration _configuration;
 
-        public SMController(ILogger<SMController> logger, SMDbContext dbContext, IWebHostEnvironment env)
+        public SMController(
+            SMDbContext dbContext, 
+            IWebHostEnvironment env,
+            IConfiguration configuration)
         {
-            _logger = logger;
+            
             _dbContext = dbContext;
             _env = env;
+            _configuration = configuration;
             
         }
-        
+
+        [HttpGet]
         public ActionResult UpdatePage()
         {
             var model = new SMPageModel(_dbContext);
             return View("SMPage",model);
         }
 
+        [HttpGet]
         public void RefreshPageAsync()
         {          
             
@@ -54,7 +58,7 @@ namespace WebApp.Controllers
             Response.Redirect(Request.Path, true);
         }
 
-        [Route("/testtasks/softmasters")]
+        [Route("page")]
         public IActionResult SMPage()
         {
             DBWorker.Configure(_dbContext);
@@ -62,19 +66,26 @@ namespace WebApp.Controllers
             return View(model);
         }
 
+        [HttpGet]
         public IActionResult ClearDataBase()
         {
             
             LogStorage.Add("начало зачистки базы данных");
-            var dbName = "SoftMasters";  // test or release db
-            _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Operations");
-            _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Invoices");
-            _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Cars");
-            _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Compositions");
-            _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Freights");
-            _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.OperationNames");
-            _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Trains");
-            _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Stations");                 
+            //TODO DI 
+            var conn = _configuration.GetConnectionString("dmise.dev");
+            var regExp = "(?<= base =)(.*)(?=;)";
+            var dbName = Regex.Match(conn, regExp).Value;
+            if (dbName != null)
+            {
+                _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Operations");
+                _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Invoices");
+                _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Cars");
+                _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Compositions");
+                _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Freights");
+                _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.OperationNames");
+                _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Trains");
+                _dbContext.Database.ExecuteSqlRaw($"DELETE FROM {dbName}.Stations");
+            }
             
 
             _dbContext.SaveChanges();
@@ -96,16 +107,36 @@ namespace WebApp.Controllers
         //}
 
 
-        [Route("CreateReport")]
+        [Route("create-report")]
         public async Task<IActionResult> CreateReport(int train) // TODO FromForm
         {
+
+            XMLWorker.CreateReportAsync(train, _env, _dbContext);
             var model = new SMPageModel(_dbContext);
             model.SelectedTrain = train;
-            XMLWorker.CreateReportAsync(train, _env, _dbContext);
             return View("SMPage", model);
         }
 
-        
+        [Route("download-report")]
+        public async Task<ActionResult> DownlodReport()
+        {
+            var reportFI = XMLWorker.GetReportFI;
+            if (reportFI != null)
+            {
+                var contenType = "application/vnd.ms-excel"; // 
+                Stream stream = new FileStream(reportFI.FullName, FileMode.Open);
+
+
+                return new FileStreamResult(stream, contenType)
+                {
+                    FileDownloadName = reportFI.Name
+                };
+            }
+            LogStorage.Add("Отчет не создан. Сначала сформируйте отчет");
+            return RedirectToAction("UpdatePage", "SM");
+        }
+
+        [Route("upload-file")]
         public async Task<IActionResult> UploadFile()
         {
             int fileAmount = 1;
@@ -157,8 +188,10 @@ namespace WebApp.Controllers
                 //Page page = HttpContext.Current.CurrentHandler as Page;
                 return BadRequest("Нужно выбрать файл, котоырй вы хотите загрузить в базу данных");
             }
-        }        
+        }
 
+        #region TODO not completed, not used
+        [HttpGet]
         private IActionResult LoadToDataBaseAsync(string filePath)
         {
             List<InvoiceXML> invList;
@@ -358,8 +391,8 @@ namespace WebApp.Controllers
             return View();   
         }
 
-        
 
+        [HttpGet]
         public async Task<IActionResult> UploadFileRAM() //TODO реализация обработки файла при этом не сохраняя его на жесткий диск
         {
             IFormFile file = Request.Form.Files[0];
@@ -373,6 +406,6 @@ namespace WebApp.Controllers
             }
             return View();
         }
-
+        #endregion
     }
 }

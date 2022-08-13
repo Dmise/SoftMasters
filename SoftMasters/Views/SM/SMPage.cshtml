@@ -14,11 +14,10 @@
         <tr>
             <td>
                 <div>
-                    <form enctype="multipart/form-data" method="post">
+                    <form asp-controller="SM" asp-action="UploadFile" enctype="multipart/form-data" method="post">
                         <label for="FormFile">Выберите XML файл для загрузки в базу данных</label><br />
-                        <input class="button" asp-for="FormFile" type="file"><br />
-                        <span asp-validation-for="FormFile"></span><br />
-                        <input asp-controller="SM" asp-action="UploadFile" class="button" type="submit" value="Upload" />
+                        <input class="button" asp-for="FormFile" type="file"><br />  <br />                       
+                        <input  class="button " type="submit" value="Upload" />
                     </form>
                 </div>
             </td>

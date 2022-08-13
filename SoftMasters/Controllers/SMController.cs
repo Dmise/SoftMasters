@@ -10,6 +10,7 @@ using WebApp.Utilities;
 using System.Data;
 
 using System.Text.RegularExpressions;
+using SoftMasters.test.Utilities;
 
 namespace WebApp.Controllers
 {
@@ -39,14 +40,14 @@ namespace WebApp.Controllers
             
         }
 
-        [HttpGet]
+        [Route("update")]
         public ActionResult UpdatePage()
         {
             var model = new SMPageModel(_dbContext);
             return View("SMPage",model);
         }
 
-        [HttpGet]
+        [HttpGet, Route("refresh")]
         public void RefreshPageAsync()
         {          
             
@@ -66,7 +67,7 @@ namespace WebApp.Controllers
             return View(model);
         }
 
-        [HttpGet]
+        [Route("clear-database")]
         public IActionResult ClearDataBase()
         {
             
@@ -136,44 +137,33 @@ namespace WebApp.Controllers
             return RedirectToAction("UpdatePage", "SM");
         }
 
-        [Route("upload-file")]
+        [HttpPost]
+        [Route("upload-file")]        
         public async Task<IActionResult> UploadFile()
         {
-            int fileAmount = 1;
-            int fileCounter = 0;
+
             var files = Request.Form.Files;
             if (files != null && files.Count != 0)
             {
-                foreach (var file in files)
+                var file = files[0];
+                var filePath = Path.GetTempFileName();
+                using (var stream = System.IO.File.Create(filePath))
                 {
-                    if (fileCounter == fileAmount)
-                        break;
-                    var filePath = Path.GetTempFileName();
-
-                    using (var stream = System.IO.File.Create(filePath))
-                    {
-                        await file.CopyToAsync(stream);
-                        fileCounter++;
-                        fileToProcess = filePath;
-                    }
-
+                    await file.CopyToAsync(stream);
+                    fileToProcess = filePath;
                 }
-                
-                try 
+
+                try
                 {
                     if (fileToProcess != null)
                     {
-                       DBWorker.Configure(_dbContext); 
-                       await DBWorker.LoadToDataBaseAsync(fileToProcess);
+                        DBWorker.Configure(_dbContext);
+                        await DBWorker.LoadToDataBaseAsync(fileToProcess);
                     }
                     else
-                        LogStorage.Add("файл с исходными XML данными не выбран");  
-                }
-                catch(DbUpdateException ex)
-                {
-                    ex.Entries.ToString();
-                }
-                catch(Exception ex)
+                        LogStorage.Add("файл с исходными XML данными не выбран");
+                }                
+                catch (Exception ex)
                 {
                     ViewBag.Error = ex.Message;
                     return View("Error");
@@ -183,19 +173,26 @@ namespace WebApp.Controllers
             }
             else
             {
-                //Это не файл,
+                // TODO  js alert
                 //return Content("<script language='javascript' type='text/javascript'>alert('Thanks for Feedback!');</script>");
                 //Page page = HttpContext.Current.CurrentHandler as Page;
-                return BadRequest("Нужно выбрать файл, котоырй вы хотите загрузить в базу данных");
+                return BadRequest("Нужно выбрать файл, который вы хотите загрузить в базу данных");
             }
         }
 
         #region TODO not completed, not used
-        [HttpGet]
+        [HttpGet, Route("load-to-database")]
         private IActionResult LoadToDataBaseAsync(string filePath)
         {
             List<InvoiceXML> invList;
-            XMLWorker.CreateInvoicesList(filePath, out invList);
+            try
+            {
+                XMLWorker.CreateInvoicesList(filePath, out invList);
+            }
+            catch(Exception ex)
+            {
+                return View("Error");
+            }
             // read data from DB to local RAM
             var stationInDBRAM = _dbContext.Stations.ToList(); // можно использовать  LINQ чтобы подгрузить только значения полей, а не сущнсоти полность _dbContext.Trains.Select(t => t.TrainId).ToList();
             var trainsIndDB = _dbContext.Trains.Select(t => t.TrainId).ToList();
@@ -344,18 +341,18 @@ namespace WebApp.Controllers
                         }                        
                         savedCars.Add(currentRowCar);
                     }
-                    
 
 
-                    Operation? currentRowOperation = savedOperations.FirstOrDefault(o => o.CarNumber == row.CarNumber && o.WhenLastOperation == DateTime.Parse(row.WhenLastOperation));
+                    var operationTime = DateTimeParser.Create(row.WhenLastOperation);
+                    Operation? currentRowOperation = savedOperations.FirstOrDefault(o => o.CarNumber == row.CarNumber && o.WhenLastOperation == operationTime);
                     if (currentRowOperation == null)
                     {
-                        currentRowOperation = _dbContext.Operations.FirstOrDefault(o => o.CarNumber == row.CarNumber && o.WhenLastOperation == DateTime.Parse(row.WhenLastOperation));
+                        currentRowOperation = _dbContext.Operations.FirstOrDefault(o => o.CarNumber == row.CarNumber && o.WhenLastOperation == operationTime);
                         if (currentRowOperation == null)
                         {                            
                             currentRowOperation = new Operation
                             {
-                                WhenLastOperation = DateTime.Parse(row.WhenLastOperation),
+                                WhenLastOperation = operationTime,
                                 CarNumber = row.CarNumber,
                                 LastOperationName = row.LastOperationName,
                                 StationName = row.LastStationName,
@@ -392,7 +389,7 @@ namespace WebApp.Controllers
         }
 
 
-        [HttpGet]
+        [HttpGet, Route("upload-fileRAM")]
         public async Task<IActionResult> UploadFileRAM() //TODO реализация обработки файла при этом не сохраняя его на жесткий диск
         {
             IFormFile file = Request.Form.Files[0];

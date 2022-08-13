@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
+using SoftMasters.test.Utilities;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -73,7 +74,7 @@ namespace WebApp.Utilities
             var operationList = new List<Operation>();
             foreach (var oper in operations) //TODO оптимальный поиск по двум параметрам (составной ключ)
             {
-                var operTime = DateTime.Parse(oper.WhenLastOperation);
+                var operTime = DateTimeParser.Create(oper.WhenLastOperation);
                 var carId = oper.CarNumber;
                 var thatOperation = operationList.Where(o => o.CarNumber == carId && o.WhenLastOperation == operTime).Count();
                 if (thatOperation > 1)
@@ -99,7 +100,15 @@ namespace WebApp.Utilities
         {
             output = new List<InvoiceXML>();
             XmlDocument xDoc = new XmlDocument();
-            xDoc.Load(filepath);
+            try
+            {
+                xDoc.Load(filepath);
+            }
+            catch(XmlException ex)
+            {
+                throw ex;
+            }
+            
             XmlElement? xRoot = xDoc.DocumentElement;
             if (xRoot != null)
             {
@@ -204,7 +213,7 @@ namespace WebApp.Utilities
                 }
 
                 await package.SaveAsync();
-                LogStorage.Add("Отчет составлен");
+                LogStorage.Add($"Отчет для поезда {trainId} составлен");
                              
 
             }

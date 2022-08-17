@@ -37,8 +37,8 @@ namespace SoftMasters.test.Utilities
         public static DateTime ParseCultureUS(string stringDateTime)
         {
             // 30.06.2019 14:50:00
-
-            return DateTime.ParseExact(stringDateTime, );
+            return new DateTime();
+           // return DateTime.ParseExact(stringDateTime, cultureUS);
         }
     }
 }

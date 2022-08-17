@@ -55,6 +55,7 @@ namespace WebApp.Utilities
             List<InvoiceXML> invList;
             XMLWorker.CreateInvoicesList(filePath, out invList);
             // read data from DB to local RAM
+            
             var stationInDBRAM = _dbContext.Stations.ToList(); // можно использовать  LINQ чтобы подгрузить только значения полей, а не сущнсоти полность _dbContext.Trains.Select(t => t.TrainId).ToList();
             var savedTrainsRAM = _dbContext.Trains.ToList();
             var operationsNamesInDBRAM = _dbContext.OperationNames.ToList();
@@ -241,8 +242,11 @@ namespace WebApp.Utilities
                     if (currentInvoice == null)
                     {
                         currentInvoice = new Invoice { InvoiceNumber = row.InvoiceNum };
-                        _dbContext.Invoices.Add(currentInvoice);
-                        invoicesInDBRAM.Add(currentInvoice);
+                        lock (_dblock)
+                        {
+                            _dbContext.Invoices.Add(currentInvoice);
+                        }
+                            invoicesInDBRAM.Add(currentInvoice);
                     }
                 }
 
@@ -287,7 +291,7 @@ namespace WebApp.Utilities
                     //var isParsed = DateTime.TryParseExact(row.WhenLastOperation, dtformat,CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out operationTime); 
                     //operationTime = DateTime.ParseExact(row.WhenLastOperation, dtformat, CultureInfo.CurrentCulture);
 
-                    var operationTime = DateTimeParser.Create(row.WhenLastOperation);
+                    var operationTime = DateTimeParser.Create(row.WhenLastOperation); ;
 
                     if (true)
                     {

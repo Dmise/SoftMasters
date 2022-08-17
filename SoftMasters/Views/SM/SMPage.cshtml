@@ -12,17 +12,16 @@
     </div>
     <table class="table">
         <tr>
-            <td>
+            <td style="display:table-cell; ">
                 <div>
-                    <form enctype="multipart/form-data" method="post">
+                    <form asp-controller="SM" asp-action="UploadFile" enctype="multipart/form-data" method="post">
                         <label for="FormFile">Выберите XML файл для загрузки в базу данных</label><br />
-                        <input class="button" asp-for="FormFile" type="file"><br />
-                        <span asp-validation-for="FormFile"></span><br />
-                        <input asp-controller="SM" asp-action="UploadFile" class="button" type="submit" value="Upload" />
+                        <input class="button" asp-for="FormFile" type="file"><br />  <br />                       
+                        <input  class="button " type="submit" value="Upload" />
                     </form>
                 </div>
             </td>
-            <td>
+            <td style="min-width:200px">
                 <div>
                     <p>Состояние базы данных:</p><br />
                     <dl>
@@ -31,7 +30,7 @@
                     <!--<a asp-controller="SM" asp-action="ClearDataBase"><button class="button">Clear DataBase</button> </a> -->
                 </div>
             </td>
-            <td>
+            <td style="display:table-cell; ">
                 <div>
                     <label for="logTextArea">Лог действий:</label><br />
                     <textarea style="resize: none" cols="70" rows="7" id="logTextArea">@Model.Logtext</textarea>
@@ -50,11 +49,11 @@
                             @{
                             if (Model.SelectedTrain == 0)
                             {
-                                <option selected value="0">Выберите поезд...</option>
+                                        <option selected value="0">Выберите поезд...</option>
                             }
                             else
                             {
-                                <option selected value="@Model.SelectedTrain">@Model.SelectedTrain</option>
+                                        <option selected value="@Model.SelectedTrain">@Model.SelectedTrain</option>
                             }
                             }
                             @foreach (var train in Model.Trains)

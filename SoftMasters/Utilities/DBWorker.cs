@@ -1,5 +1,8 @@
 ﻿using WebApp.Data;
 using WebApp.Models;
+using System.Globalization;
+using System.Text.RegularExpressions;
+using SoftMasters.test.Utilities;
 
 namespace WebApp.Utilities
 {
@@ -14,7 +17,7 @@ namespace WebApp.Utilities
         private static readonly object _lockInvoices = new object();
         private static readonly object _lockOperations = new object();
         private static readonly object _lockCars = new object();
-        
+
 
         //public DBWorker(SMDbContext dbContext)
         //{
@@ -52,6 +55,7 @@ namespace WebApp.Utilities
             List<InvoiceXML> invList;
             XMLWorker.CreateInvoicesList(filePath, out invList);
             // read data from DB to local RAM
+            
             var stationInDBRAM = _dbContext.Stations.ToList(); // можно использовать  LINQ чтобы подгрузить только значения полей, а не сущнсоти полность _dbContext.Trains.Select(t => t.TrainId).ToList();
             var savedTrainsRAM = _dbContext.Trains.ToList();
             var operationsNamesInDBRAM = _dbContext.OperationNames.ToList();
@@ -60,10 +64,7 @@ namespace WebApp.Utilities
             var savedCompositionRAM = _dbContext.Compositions.ToList();
             var savedOperationsRAM = _dbContext.Operations.ToList();
 
-            List<Car> savedCars = new List<Car>();
-
-
-
+            List<Car> savedCars = _dbContext.Cars.ToList();
 
             //Parallel.For<> .//TODO сделать данный цикл параллельным  Parallel.For Loop
             // TODO chunks
@@ -241,8 +242,11 @@ namespace WebApp.Utilities
                     if (currentInvoice == null)
                     {
                         currentInvoice = new Invoice { InvoiceNumber = row.InvoiceNum };
-                        _dbContext.Invoices.Add(currentInvoice);
-                        invoicesInDBRAM.Add(currentInvoice);
+                        lock (_dblock)
+                        {
+                            _dbContext.Invoices.Add(currentInvoice);
+                        }
+                            invoicesInDBRAM.Add(currentInvoice);
                     }
                 }
 
@@ -281,37 +285,50 @@ namespace WebApp.Utilities
 
                 lock (_lockOperations)
                 {
-                    currentRowOperation = savedOperationsRAM.FirstOrDefault(o => o.CarNumber == row.CarNumber && o.WhenLastOperation == DateTime.Parse(row.WhenLastOperation));
-                    if (currentRowOperation == null)
+                    // DateTimeFormatInfo.InvariantInfo
+                    // CultureInfo.InvariantCulture   - IFormtProvider
+                    // DateTimeStyle.None ; DateTimeStyle.AssumeUniversal;  DateTimeStyle.RoundtripKind
+                    //var isParsed = DateTime.TryParseExact(row.WhenLastOperation, dtformat,CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out operationTime); 
+                    //operationTime = DateTime.ParseExact(row.WhenLastOperation, dtformat, CultureInfo.CurrentCulture);
+
+                    var operationTime = DateTimeParser.Create(row.WhenLastOperation); ;
+
+                    if (true)
                     {
-                        lock (_dblock)
-                        {
-                            currentRowOperation = _dbContext.Operations.FirstOrDefault(o => o.CarNumber == row.CarNumber && o.WhenLastOperation == DateTime.Parse(row.WhenLastOperation));
-                        }
+                        currentRowOperation = savedOperationsRAM.FirstOrDefault(o => o.CarNumber == row.CarNumber && o.WhenLastOperation == operationTime);
                         if (currentRowOperation == null)
                         {
-                            currentRowOperation = new Operation
-                            {
-                                WhenLastOperation = DateTime.Parse(row.WhenLastOperation),
-                                CarNumber = row.CarNumber,
-                                LastOperationName = row.LastOperationName,
-                                StationName = row.LastStationName,
-                                _Car = currentRowCar,
-                                _OperationName = currentOperName,
-                                _Station = currentRowLastStation
-                            };
                             lock (_dblock)
                             {
-                                _dbContext.Operations.Add(currentRowOperation);
+                                currentRowOperation = _dbContext.Operations.FirstOrDefault(o => o.CarNumber == row.CarNumber && o.WhenLastOperation == operationTime);
                             }
+                            if (currentRowOperation == null)
+                            {
+                                currentRowOperation = new Operation
+                                {
+                                    WhenLastOperation = operationTime,
+                                    CarNumber = row.CarNumber,
+                                    LastOperationName = row.LastOperationName,
+                                    StationName = row.LastStationName,
+                                    _Car = currentRowCar,
+                                    _OperationName = currentOperName,
+                                    _Station = currentRowLastStation
+                                };
+                                lock (_dblock)
+                                {
+                                    _dbContext.Operations.Add(currentRowOperation);
+                                }
+                            }
+                            savedOperationsRAM.Add(currentRowOperation);
                         }
-                        savedOperationsRAM.Add(currentRowOperation);
+                    }
+                    else
+                    {
+                        LogStorage.Add($"Warning. не получилось преобразовтаь {row.WhenLastOperation} в DateTime, для последующей записи в БД");
                     }
                 }
             }
-        }
-    
-        
+        }         
 
 
 

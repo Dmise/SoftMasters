@@ -1,5 +1,5 @@
 # SoftMasters
-Test task given to me by Soft Masters company 
+Test task given to me by [Soft Masters](https://www.soft-masters.ru/) company 
 
 [Endpoint](https://dmise.dev/testtasks/softmasters) to completed task on my site. 
 
